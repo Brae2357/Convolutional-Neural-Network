@@ -1,3 +1,28 @@
+/**
+ * Matrix.java
+ *
+ * This class represents a mathematical matrix and provides operations such as
+ * addition, scaling, matrix multiplication, and flattening.
+ *
+ * Features:
+ * - Supports creation from 2D arrays, copies of other matrices, and randomized initialization [-1,1].
+ * - Implements matrix addition, scalar multiplication, matrix multiplication, and flattening.
+ * - Ensures immutability by copying data where necessary.
+ * - Provides a readable string representation of the matrix.
+ *
+ * Author: Braeden West
+ * Date: 3/11/2025
+ * Version: 1.0
+ *
+ * Usage:
+ *  Matrix A = new Matrix(3, 3); // Creates a 3x3 matrix with all zeros
+ *  Matrix B = Matrix.randomized(3, 3); // Creates a 3x3 matrix with values between -1 and 1
+ *  Matrix C = A.add(B); // Adds matrices A and B
+ *  Matrix D = A.scale(2.5); // Multiplies matrix A by scalar 2.5
+ *  Matrix E = A.multiply(B); // Performs matrix multiplication
+ *  Matrix F = A.flatten(); // Converts matrix to column matrix
+ */
+
 package cnn;
 
 import java.util.Arrays;
@@ -81,6 +106,19 @@ public class Matrix {
                     sum += this.data[row][thisCol] * other.data[thisCol][col];
                 }
                 result.data[row][col] = sum;
+            }
+        }
+        return result;
+    }
+
+    // Flatten into a column vector
+    public Matrix flatten() {
+        Matrix result = new Matrix(this.rows * this.cols, 1);
+        int index = 0;
+        for(int row = 0; row < rows; row++) {
+            for (int col = 0; col < cols; col++) {
+                result.data[index][0] = this.data[row][col];
+                index++;
             }
         }
         return result;
