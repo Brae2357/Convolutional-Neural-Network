@@ -1,31 +1,38 @@
-/**
- * Matrix.java
- *
- * This class represents a mathematical matrix and provides operations such as
- * addition, scaling, matrix multiplication, and flattening.
- *
- * Features:
- * - Supports creation from 2D arrays, copies of other matrices, and randomized initialization [-1,1].
- * - Implements matrix addition, scalar multiplication, matrix multiplication, and flattening.
- * - Ensures immutability by copying data where necessary.
- * - Provides a readable string representation of the matrix.
- *
- * Author: Braeden West
- * Date: 3/11/2025
- * Version: 1.0
- *
- * Usage:
- *  Matrix A = new Matrix(3, 3); // Creates a 3x3 matrix with all zeros
- *  Matrix B = Matrix.randomized(3, 3); // Creates a 3x3 matrix with values between -1 and 1
- *  Matrix C = A.add(B); // Adds matrices A and B
- *  Matrix D = A.scale(2.5); // Multiplies matrix A by scalar 2.5
- *  Matrix E = A.multiply(B); // Performs matrix multiplication
- *  Matrix F = A.flatten(); // Converts matrix to column matrix
- */
-
 package cnn;
 
 import java.util.Arrays;
+
+/**
+ * Represents a mathematical matrix and provides various matrix operations.
+ *
+ * <p>This class supports fundamental matrix operations such as addition, scaling,
+ * matrix multiplication, activations, and flattening. It ensures immutability
+ * by copying data where necessary and provides a readable string representation.</p>
+ *
+ * <p>Features:</p>
+ * <ul>
+ *     <li>Supports creation from 2D arrays, copies of other matrices, and randomized initialization in the range [-1,1].</li>
+ *     <li>Implements matrix addition, subtraction, scalar multiplication, and matrix multiplication.</li>
+ *     <li>Includes activation functions and flattening operations.</li>
+ *     <li>Ensures immutability by copying data when necessary.</li>
+ * </ul>
+ *
+ * <p>Usage:</p>
+ * <pre>{@code
+ * Matrix A = new Matrix(3, 3); // Creates a 3x3 matrix with all zeros
+ * Matrix B = Matrix.randomized(3, 3); // Creates a 3x3 matrix with values between -1 and 1
+ * Matrix C = A.add(B); // Adds matrices A and B
+ * Matrix D = A.subtract(B); // Subtracts matrices A and B
+ * Matrix E = A.scale(2.5); // Multiplies matrix A by scalar 2.5
+ * Matrix F = A.multiply(B); // Performs matrix multiplication
+ * Matrix G = A.activate(ActivationFunction.RELU); // Applies ReLU activation to each element in A
+ * Matrix H = A.flatten(); // Converts matrix to a column matrix
+ * }</pre>
+ *
+ * @author Braeden West
+ * @version 1.1 (2025-03-12)
+ * @since 2025-03-11
+ */
 
 public class Matrix {
     private double[][] data;
@@ -81,6 +88,20 @@ public class Matrix {
         return result;
     }
 
+    // Matrix subtraction
+    public Matrix subtract(Matrix other) {
+        // Check if matrices not equal sizes
+        if (this.rows != other.rows || this.cols != other.cols) throw new IllegalArgumentException("Matrix dimensions do not match for addition.");
+
+        Matrix result = new Matrix(rows, cols);
+        for (int row = 0; row < rows; row++) {
+            for (int col = 0; col < cols; col++) {
+                result.data[row][col] = this.data[row][col] - other.data[row][col];
+            }
+        }
+        return result;
+    }
+
     // Matrix scalar multiplication
     public Matrix scale(double scalar) {
         Matrix result = new Matrix(rows, cols);
@@ -111,6 +132,17 @@ public class Matrix {
         return result;
     }
 
+    // Pass each element through the activation function
+    public Matrix activate(ActivationFunction activation) {
+        Matrix result = new Matrix(this.rows, this.cols);
+        for (int row = 0; row < rows; row++) {
+            for (int col = 0; col < cols; col++) {
+                result.data[row][col] = activation.apply(this.data[row][col]);
+            }
+        }
+        return result;
+    }
+
     // Flatten into a column vector
     public Matrix flatten() {
         Matrix result = new Matrix(this.rows * this.cols, 1);
@@ -122,6 +154,14 @@ public class Matrix {
             }
         }
         return result;
+    }
+
+    public int getCols() {
+        return cols;
+    }
+
+    public int getRows() {
+        return rows;
     }
 
     public double[][] toArray() {

@@ -1,34 +1,38 @@
-/**
- * MNISTDownloader.java
- *
- * This class handles downloading and extracting the MNIST dataset. It retrieves the dataset
- * from Google's cloud storage, extracts the gzip-compressed files, and stores them in the
- * designated directory.
- *
- * Features:
- * - Downloads training and test images along with their labels.
- * - Extracts gzip-compressed files.
- * - Skips downloading if files already exist.
- * - Deletes compressed files after extraction.
- *
- * Author: Braeden West
- * Created: 3/12/2025
- * Updated: 3/12/2025
- * Version 1.0 (Initial implementation)
- *
- * Usage:
- *  MNISTDownloader.downloadMNIST(); // Downloads and extracts MNIST dataset
- *
- *  Notes:
- *  - Requires an internet connection for downloading.
- *  - Creates a directory "mnist_data/" to store extracted files.
- */
-
-package utilities;
+package utilities.mnist;
 
 import java.io.*;
 import java.net.URL;
 import java.util.zip.GZIPInputStream;
+
+/**
+ * Handles downloading and extracting the MNIST dataset.
+ *
+ * <p>This class retrieves the MNIST dataset from Google's cloud storage, extracts the
+ * gzip-compressed files, and stores them in the designated directory.</p>
+ *
+ * <p>Features:</p>
+ * <ul>
+ *     <li>Downloads training and test images along with their labels.</li>
+ *     <li>Extracts gzip-compressed files.</li>
+ *     <li>Skips downloading if files already exist.</li>
+ *     <li>Deletes compressed files after extraction.</li>
+ * </ul>
+ *
+ * <p>Usage:</p>
+ * <pre>{@code
+ * MNISTDownloader.downloadMNIST(); // Downloads and extracts MNIST dataset
+ * }</pre>
+ *
+ * <p>Notes:</p>
+ * <ul>
+ *     <li>Requires an internet connection for downloading.</li>
+ *     <li>Creates a directory <code>mnist_data/</code> to store extracted files.</li>
+ * </ul>
+ *
+ * @author Braeden West
+ * @version 1.0 (Initial implementation)
+ * @since 2025-03-12
+ */
 
 public class MNISTDownloader {
     private static final String TRAIN_IMAGES_URL = "https://storage.googleapis.com/cvdf-datasets/mnist/train-images-idx3-ubyte.gz";
