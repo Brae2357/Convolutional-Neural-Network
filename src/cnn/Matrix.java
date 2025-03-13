@@ -12,7 +12,7 @@ import java.util.Arrays;
  * <p>Features:</p>
  * <ul>
  *     <li>Supports creation from 2D arrays, copies of other matrices, and randomized initialization in the range [-1,1].</li>
- *     <li>Implements matrix addition, subtraction, scalar multiplication, and matrix multiplication.</li>
+ *     <li>Implements matrix addition, subtraction, transposition, scalar multiplication, matrix multiplication, and element-wise multiplication.</li>
  *     <li>Includes activation functions and flattening operations.</li>
  *     <li>Ensures immutability by copying data when necessary.</li>
  * </ul>
@@ -23,20 +23,23 @@ import java.util.Arrays;
  * Matrix B = Matrix.randomized(3, 3); // Creates a 3x3 matrix with values between -1 and 1
  * Matrix C = A.add(B); // Adds matrices A and B
  * Matrix D = A.subtract(B); // Subtracts matrices A and B
- * Matrix E = A.scale(2.5); // Multiplies matrix A by scalar 2.5
- * Matrix F = A.multiply(B); // Performs matrix multiplication
- * Matrix G = A.activate(ActivationFunction.RELU); // Applies ReLU activation to each element in A
- * Matrix H = A.flatten(); // Converts matrix to a column matrix
+ * Matrix E = A.transpose(); // Interchanges rows and columns
+ * Matrix F = A.scale(2.5); // Multiplies matrix A by scalar 2.5
+ * Matrix G = A.multiply(B); // Performs matrix multiplication
+ * Matrix H = A.elementWiseMultiply(B); // Multiplies elements in A and B
+ * Matrix I = A.activate(ActivationFunction.RELU); // Applies ReLU activation to each element in A
+ * Matrix J = A.activationDerivative(ActivationFunction.RELU); // Applies ReLU derivative to each element in A
+ * Matrix K = A.flatten(); // Converts matrix to a column matrix
  * }</pre>
  *
  * @author Braeden West
- * @version 1.1 (2025-03-12)
+ * @version 1.2 (2025-03-13)
  * @since 2025-03-11
  */
 
 public class Matrix {
-    private double[][] data;
-    private int rows, cols;
+    private final double[][] data;
+    private final int rows, cols;
 
     public Matrix(int rows, int cols) {
         this.rows = rows;
@@ -102,6 +105,17 @@ public class Matrix {
         return result;
     }
 
+    // Matrix transposition
+    public Matrix transpose() {
+        Matrix result = new Matrix(cols, rows); // Flips dimensions
+        for (int row = 0; row < this.rows; row++) {
+            for (int col = 0; col < this.cols; col++) {
+                result.data[col][row] = this.data[row][col];
+            }
+        }
+        return result;
+    }
+
     // Matrix scalar multiplication
     public Matrix scale(double scalar) {
         Matrix result = new Matrix(rows, cols);
@@ -132,12 +146,38 @@ public class Matrix {
         return result;
     }
 
-    // Pass each element through the activation function
-    public Matrix activate(ActivationFunction activation) {
+    // Element wise matrix multiplication
+    public Matrix elementWiseMultiply(Matrix other) {
+        // Check if matrices are not the same size
+        if (this.rows != other.rows || this.cols != other.cols) throw new IllegalArgumentException("Matrix dimensions do not match for element-wise multiplication.");
+
+        // Element multiplication
         Matrix result = new Matrix(this.rows, this.cols);
         for (int row = 0; row < rows; row++) {
             for (int col = 0; col < cols; col++) {
-                result.data[row][col] = activation.apply(this.data[row][col]);
+                result.data[row][col] = this.data[row][col] * other.data[row][col];
+            }
+        }
+        return result;
+    }
+
+    // Pass each element through the activation function
+    public Matrix activate(ActivationFunction activationFunction) {
+        Matrix result = new Matrix(this.rows, this.cols);
+        for (int row = 0; row < rows; row++) {
+            for (int col = 0; col < cols; col++) {
+                result.data[row][col] = activationFunction.apply(this.data[row][col]);
+            }
+        }
+        return result;
+    }
+
+    // Pass each element through the derivative of the activation function
+    public Matrix activationDerivative(ActivationFunction activationFunction) {
+        Matrix result = new Matrix(this.rows, this.cols);
+        for (int row = 0; row < rows; row++) {
+            for (int col = 0; col < cols; col++) {
+                result.data[row][col] = activationFunction.derivative(this.data[row][col]);
             }
         }
         return result;
