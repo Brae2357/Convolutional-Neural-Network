@@ -28,7 +28,7 @@ import java.util.stream.IntStream;
  * <p>Subclasses should implement data loading mechanisms specific to the dataset format.</p>
  *
  * @author Braeden West
- * @version 1.0 (2025-03-12)
+ * @version 1.1 (2025-03-13)
  * @since 1.0 (2025-03-12)
  */
 
@@ -57,13 +57,18 @@ public abstract class Dataset {
         currentIndex = 0; // Reset batch index
     }
 
+    // Returns true if there is untested data in this shuffle
+    public boolean hasNextBatch() {
+        return currentIndex < data.size();
+    }
+
     // Returns next batch, which includes the data and expected outputs, returns null if all data has been used (reshuffle needed)
     public Batch getNextBatch(int batchSize) {
         List<Matrix> batchData = new ArrayList<>();
         List<Matrix> batchOutputs = new ArrayList<>();
 
         for (int i = 0; i < batchSize; i++) {
-            if (i >= data.size()) {
+            if (currentIndex >= data.size()) {
                 if (i == 0) {
                     return null; // Return null if there is no data in this batch
                 }
@@ -77,6 +82,16 @@ public abstract class Dataset {
 
         return new Batch(batchData, batchOutputs);
     }
+
+    public Matrix getDataAtIndex(int index) {
+        return data.get(index);
+    }
+
+    public Matrix getOutputAtIndex(int index) {
+        return outputs.get(index);
+    }
+
+    public int getSize() { return data.size(); }
 
     // Batch record
         public record Batch(List<Matrix> inputs, List<Matrix> outputs) {

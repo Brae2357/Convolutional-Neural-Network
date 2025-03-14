@@ -30,6 +30,7 @@ import java.util.Arrays;
  * Matrix I = A.activate(ActivationFunction.RELU); // Applies ReLU activation to each element in A
  * Matrix J = A.activationDerivative(ActivationFunction.RELU); // Applies ReLU derivative to each element in A
  * Matrix K = A.flatten(); // Converts matrix to a column matrix
+ * Matrix L = A.sortFlattenedByIndex(); // Sorts matrix indices in descending order
  * }</pre>
  *
  * @author Braeden West
@@ -194,6 +195,19 @@ public class Matrix {
             }
         }
         return result;
+    }
+
+    // Sort the flattened matrix and return a list of the indices from largest to smallest
+    public int[] sortFlattenedByIndex() {
+        // Check if matrix is not flattened
+        if (this.cols != 1) throw new IllegalArgumentException("Matrix dimensions are not flattened for sorting.");
+
+        Integer[] indices = new Integer[this.rows];
+        for (int i = 0; i < this.rows; i++) {
+            indices[i] = i;
+        }
+        Arrays.sort(indices, (a, b) -> Double.compare(this.data[b][0], this.data[a][0]));
+        return Arrays.stream(indices).mapToInt(i -> i).toArray();
     }
 
     public int getCols() {
