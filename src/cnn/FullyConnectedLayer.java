@@ -23,12 +23,15 @@ package cnn;
  */
 
 public class FullyConnectedLayer extends Layer {
+    private final int numInputNodes, numOutputNodes;
     private Matrix weights, costGradientWeights;
     private Matrix biases, costGradientBiases;
     private ActivationFunction activation;
-    private Matrix previousOutput, activatedOutput;
+    private Matrix weightedInputs, inputs;
 
     public FullyConnectedLayer(int numInputNodes, int numOutputNodes, ActivationFunction activation) {
+        this.numInputNodes = numInputNodes;
+        this.numOutputNodes = numOutputNodes;
         this.weights = Matrix.randomized(numOutputNodes, numInputNodes);
         this.biases = Matrix.randomized(numOutputNodes, 1);
         this.activation = activation;
@@ -36,41 +39,75 @@ public class FullyConnectedLayer extends Layer {
         clearGradient(); // Reset gradients
     }
 
+    public FullyConnectedLayer(int numInputNodes, int numOutputNodes, Matrix weights, Matrix biases, ActivationFunction activation) {
+        this.numInputNodes = numInputNodes;
+        this.numOutputNodes = numOutputNodes;
+        this.weights = weights;
+        this.biases = biases;
+        this.activation = activation;
+
+        clearGradient(); // Reset gradients
+    }
+
+    @Override
+    public LayerType getType() {
+        return LayerType.FULLY_CONNECTED;
+    }
+
     // Forward propagation through network
     @Override
     public Matrix forward(Matrix input) {
-        previousOutput = input;
-        Matrix weightedInputs = weights.multiply(input); // Add together all the weighted inputs for each node
-        Matrix biasedOutput = weightedInputs.add(biases); // Add the bias to each node
-        activatedOutput = biasedOutput.activate(activation); // Pass output through activation function
-        return activatedOutput;
+        this.inputs = input;
+        weightedInputs = weights.multiply(input); // Add together all the weighted inputs for each node
+        weightedInputs = weightedInputs.add(biases); // Add the bias to each node
+
+        Matrix activations;
+        if (activation == ActivationFunction.SOFTMAX) {
+            activations = weightedInputs.softmax();
+        } else {
+            activations = weightedInputs.activate(activation);
+        }
+        return activations;
     }
 
-    // Backpropagation through network
+    // Backpropagation through network with a parameter using derivative of Cost with respect to activation
     @Override
-    public Matrix backward(Matrix outputGradient) {
-        // Compute the derivative of the activation function
-        Matrix activationDerivative = activatedOutput.activationDerivative(activation);
+    public Matrix backward(Matrix dC_da) {
+        // Derivative of activation with respect to weighted inputs
+        Matrix da_dz = weightedInputs.activationDerivative(activation);
 
-        // Compute delta (error) using element-wise multiplication
-        Matrix delta = outputGradient.elementWiseMultiply(activationDerivative);
+        // Derivative of Cost with respect to weighted inputs
+        Matrix dC_dz = dC_da.elementWiseMultiply(da_dz);
 
-        // Compute gradients for weights and biases
-        Matrix inputTranspose = previousOutput.transpose();
-        Matrix weightGradient = delta.multiply(inputTranspose);
-        Matrix biasGradient = delta;
+        // Evaluate the partial derivative of cost with respect to weight
+        Matrix dC_dw = dC_dz.multiply(inputs.transpose());
 
-        // Accumulate gradients
-        costGradientWeights = costGradientWeights.add(weightGradient);
-        costGradientBiases = costGradientBiases.add(biasGradient);
+        // Update gradients
+        costGradientWeights = costGradientWeights.add(dC_dw);
+        costGradientBiases = costGradientBiases.add(dC_dz);
 
+        // Backpropagation to previous layer
+        return weights.transpose().multiply(dC_dz);
+    }
 
-        // Compute and return gradient for previous layer
-        return weights.transpose().multiply(delta);
+    // Output layer backpropagation
+    public Matrix backward(Matrix predicted, Matrix expected) {
+        // Derivative of Cost with respect to weighted inputs
+        Matrix dC_dz = predicted.subtract(expected);
+
+        // Evaluate the partial derivative of cost with respect to weight
+        Matrix dC_dw = dC_dz.multiply(inputs.transpose());
+
+        // Update gradients
+        costGradientWeights = costGradientWeights.add(dC_dw);
+        costGradientBiases = costGradientBiases.add(dC_dz);
+
+        // Backpropagation to previous layer
+        return weights.transpose().multiply(dC_dz);
     }
 
     // Applies and clears the average gradients for weight and bias
-    public void applyGradient(double learnRate, int batchSize) {
+    public void applyGradient(double learnRate) {
         weights = weights.subtract(costGradientWeights.scale(learnRate));
         biases = biases.subtract(costGradientBiases.scale(learnRate));
     }
@@ -79,5 +116,27 @@ public class FullyConnectedLayer extends Layer {
     public void clearGradient() {
         costGradientWeights = new Matrix(weights.getRows(), weights.getCols());
         costGradientBiases = new Matrix(biases.getRows(), biases.getCols());
+    }
+
+    @Override
+    public int getNumInputs() {
+        return numInputNodes;
+    }
+
+    @Override
+    public int getNumOutputs() {
+        return numOutputNodes;
+    }
+
+    public ActivationFunction getActivationFunction() {
+        return activation;
+    }
+
+    public Matrix getWeights() {
+        return weights;
+    }
+
+    public Matrix getBiases() {
+        return biases;
     }
 }

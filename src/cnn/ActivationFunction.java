@@ -1,18 +1,6 @@
 package cnn;
 
 public enum ActivationFunction {
-    RELU {
-        @Override
-        public double apply(double x) {
-            return Math.max(0, x);
-        }
-
-        @Override
-        public double derivative(double x) {
-            return x > 0 ? 1 : 0;
-        }
-    },
-
     LEAKY_RELU {
         @Override
         public double apply(double x) {
@@ -25,6 +13,18 @@ public enum ActivationFunction {
         }
     },
 
+    RELU {
+        @Override
+        public double apply(double x) {
+            return Math.max(0, x);
+        }
+
+        @Override
+        public double derivative(double x) {
+            return x > 0 ? 1 : 0;
+        }
+    },
+
     SIGMOID {
         @Override
         public double apply(double x) {
@@ -33,8 +33,20 @@ public enum ActivationFunction {
 
         @Override
         public double derivative(double x) {
-            double sigmoid = apply(x);
-            return sigmoid * (1 - sigmoid);
+            double activation = apply(x);
+            return activation * (1 - activation);
+        }
+    },
+
+    SOFTMAX {
+        @Override
+        public double apply(double x) {
+            throw new UnsupportedOperationException("Softmax requires a matrix, rather than a single value.");
+        }
+
+        @Override
+        public double derivative(double x) {
+            throw new UnsupportedOperationException("Softmax derivative must be computed with matrix");
         }
     };
 

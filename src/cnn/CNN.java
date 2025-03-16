@@ -1,22 +1,46 @@
 package cnn;
 
 import utilities.Dataset;
+import utilities.ImageAugmentor;
 
 import java.util.List;
+
+/**
+ * Represents a Convolutional Neural Network (CNN) with multiple layers.
+ * Supports forward and backward propagation, training with mini-batches, and testing.
+ *
+ * <p>Features</p>
+ * <ul>
+ *     <li>Customizable layer structure.</li>
+ *     <li>Supports different cost functions.</li>
+ *     <li>Allows optional data augmentation.</li>
+ *     <li>Mini-batch training with gradient application.</li>
+ * </ul>
+ *
+ * <p>Usage:</p>
+ * <pre>{@code
+ *     CNN A = new CNN(layers, costFunction, allowAugmenting); // Create a network
+ *     Matrix B = A.forward(input); // Forward propagation
+ *     A.backward(predictedOutput, expectedOutput); // Backpropagation
+ *     Matrix C = A.predict(input); // Returns output of forward propagation
+ *     A.train(dataset, learningRate, maxEpochs, batchSize, targetCost, continuous); // Train network on data
+ *     A.test(dataset); // Test network on dataset and print success rate
+ * }</pre>
+ *
+ * @author Braeden West
+ * @version 1.0 (2025-03-16)
+ * @since 2025-03-16
+ */
 
 public class CNN {
     private List<Layer> layers; // Holds all layers (convolution, pooling, fully connected)
     private CostFunction costFunction; // Cost function for network
-    private double learningRate;
-    private int epochs;
-    private int batchSize;
+    private boolean allowAugmenting;
 
-    public CNN(List<Layer> layers, CostFunction costFunction) {
-        this.learningRate = learningRate;
-        this.epochs = epochs;
-        this.batchSize = batchSize;
+    public CNN(List<Layer> layers, CostFunction costFunction, boolean allowAugmenting) {
         this.layers = layers;
         this.costFunction = costFunction;
+        this.allowAugmenting = allowAugmenting;
     }
 
     // Forward propagate through the entire network
@@ -30,21 +54,20 @@ public class CNN {
     }
 
     // Backward propagate through the entire network
-    public void backward(Matrix outputError) {
-        Matrix error = outputError;
+    public void backward(Matrix predictedOutput, Matrix expectedOutput) {
+        Matrix error = null;
         for (int i = layers.size() - 1; i >= 0; i--) {
-            error = layers.get(i).backward(error);
+            if (i != layers.size() - 1) {
+                error = layers.get(i).backward(error);
+            } else { // Output layer
+                error = ((FullyConnectedLayer) layers.get(i)).backward(predictedOutput, expectedOutput);
+            }
         }
     }
 
     // Predict correct output
     public Matrix predict(Matrix input) {
         return forward(input);
-    }
-
-    // Train the network on dataset with default learningRate, epochs, and batchSize
-    public void train(Dataset dataset) {
-        train(dataset, learningRate, epochs, batchSize, null, false);
     }
 
     // Train the network on dataset with configurable settings
@@ -66,6 +89,10 @@ public class CNN {
                     Matrix input = inputs.get(i);
                     Matrix expectedOutput = expectedOutputs.get(i);
 
+                    if (allowAugmenting) {
+                        input = ImageAugmentor.augment(input);
+                    }
+
                     // Forward pass
                     Matrix predictedOutput = forward(input);
 
@@ -74,13 +101,13 @@ public class CNN {
                     totalCost += costFunction.calculate(predictedOutput, expectedOutput);
 
                     // Backward pass
-                    backward(outputError);
+                    backward(predictedOutput, expectedOutput);
                 }
 
                 // Apply accumulated gradients
                 for (Layer layer : layers) {
                     if (layer instanceof FullyConnectedLayer) {
-                        ((FullyConnectedLayer) layer).applyGradient(learningRate, batchSize);
+                        ((FullyConnectedLayer) layer).applyGradient(learningRate);
                         ((FullyConnectedLayer) layer).clearGradient();
                     }
                 }
@@ -110,5 +137,17 @@ public class CNN {
         double percentage = ((double) correct / dataset.getSize()) * 100;
         String formattedPercentage = String.format("%.2f%%", percentage);
         System.out.println("Test Results: " + correct + "/" + dataset.getSize() + " = " + formattedPercentage);
+    }
+
+    public List<Layer> getLayers() {
+        return layers;
+    }
+
+    public CostFunction getCostFunction() {
+        return costFunction;
+    }
+
+    public boolean isAllowAugmenting() {
+        return allowAugmenting;
     }
 }

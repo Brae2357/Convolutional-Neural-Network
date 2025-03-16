@@ -7,16 +7,10 @@ public enum CostFunction {
             // Check if matrices are not the same size
             if (predicted.getRows() != expected.getRows() || predicted.getCols() != expected.getCols()) throw new IllegalArgumentException("Matrix dimensions do not match for cost function.");
 
-            double cost = 0;
-            double[][] predictedData = predicted.toArray();
-            double[][] expectedData = expected.toArray();
-            for (int row = 0; row < predicted.getRows(); row++) {
-                for (int col = 0; col < predicted.getCols(); col++) {
-                    double difference = predictedData[row][col] - expectedData[row][col]; // Get difference
-                    cost += difference * difference; // Square difference and add to cost
-                }
-            }
-            return cost / (predicted.getRows() * predicted.getCols()); // Divide by number of elements to get average cost
+            Matrix difference = predicted.subtract(expected); // Get difference between predicted and expected
+            Matrix squared = difference.elementWiseMultiply(difference); // Square results
+
+            return squared.sum() / (predicted.getRows() * predicted.getCols()); // Get average cost
         }
 
         @Override
@@ -24,17 +18,7 @@ public enum CostFunction {
             // Check if matrices are not the same size
             if (predicted.getRows() != expected.getRows() || predicted.getCols() != expected.getCols()) throw new IllegalArgumentException("Matrix dimensions do not match for cost function.");
 
-            double[][] gradient = new double[predicted.getRows()][predicted.getCols()];
-            double factor = 2.0 / (predicted.getRows() * predicted.getCols());
-
-            double[][] predictedData = predicted.toArray();
-            double[][] expectedData = expected.toArray();
-            for (int row = 0; row < predicted.getRows(); row++) {
-                for (int col = 0; col < predicted.getCols(); col++) {
-                    gradient[row][col] = factor * (predictedData[row][col] - expectedData[row][col]);
-                }
-            }
-            return new Matrix(gradient);
+            return predicted.subtract(expected).scale(2.0 / (predicted.getRows()) * predicted.getCols());
         }
     },
 

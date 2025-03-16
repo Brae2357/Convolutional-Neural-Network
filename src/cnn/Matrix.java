@@ -22,22 +22,24 @@ import java.util.Arrays;
  * Matrix A = new Matrix(3, 3); // Creates a 3x3 matrix with all zeros
  * Matrix B = Matrix.randomized(3, 3); // Creates a 3x3 matrix with values between -1 and 1
  * Matrix C = A.add(B); // Adds matrices A and B
- * Matrix D = A.subtract(B); // Subtracts matrices A and B
- * double E = A.sum(); // Sums all elements in A
- * Matrix F = A.transpose(); // Interchanges rows and columns
- * Matrix G = A.scale(2.5); // Multiplies matrix A by scalar 2.5
- * Matrix H = A.multiply(B); // Performs matrix multiplication
- * Matrix I = A.elementWiseMultiply(B); // Multiplies elements in A and B
- * Matrix J = A.exp(); // Apply e^x to each element
- * Matrix K = A.activate(ActivationFunction.RELU); // Applies ReLU activation to each element in A
- * Matrix L = A.activationDerivative(ActivationFunction.RELU); // Applies ReLU derivative to each element in A
- * Matrix M = A.softmax(); // Transforms matrix into probability distribution
- * Matrix N = A.flatten(); // Converts matrix to a column matrix
- * int[] O = A.sortFlattenedByIndex(); // Sorts matrix indices in descending order
+ * Matrix D = A.add(2.5); // Adds 2.5 to each element
+ * Matrix E = A.subtract(B); // Subtracts matrices A and B
+ * double F = A.sum(); // Sums all elements in A
+ * Matrix G = A.transpose(); // Interchanges rows and columns
+ * Matrix H = A.scale(2.5); // Multiplies matrix A by scalar 2.5
+ * Matrix I = A.multiply(B); // Performs matrix multiplication
+ * Matrix J = A.elementWiseMultiply(B); // Multiplies elements in A and B
+ * Matrix K = A.exp(); // Apply e^x to each element
+ * Matrix L = A.activate(ActivationFunction.RELU); // Applies ReLU activation to each element in A
+ * Matrix M = A.activationDerivative(ActivationFunction.RELU); // Applies ReLU derivative to each element in A
+ * Matrix N = A.softmax(); // Transforms matrix into probability distribution
+ * Matrix O = A.softmaxDerivative(); // Pass through softmax derivative
+ * Matrix P = A.flatten(); // Converts matrix to a column matrix
+ * int[] Q = A.sortFlattenedByIndex(); // Sorts matrix indices in descending order
  * }</pre>
  *
  * @author Braeden West
- * @version 1.3 (2025-03-15)
+ * @version 1.3 (2025-03-16)
  * @since 2025-03-11
  */
 
@@ -95,10 +97,21 @@ public class Matrix {
         return result;
     }
 
+    // Constant addition
+    public Matrix add(double constant) {
+        Matrix result = new Matrix(this.rows, this.cols);
+        for (int row = 0; row < rows; row++) {
+            for (int col = 0; col < cols; col++) {
+                result.data[row][col] = this.data[row][col] + constant;
+            }
+        }
+        return result;
+    }
+
     // Matrix subtraction
     public Matrix subtract(Matrix other) {
         // Check if matrices not equal sizes
-        if (this.rows != other.rows || this.cols != other.cols) throw new IllegalArgumentException("Matrix dimensions do not match for addition.");
+        if (this.rows != other.rows || this.cols != other.cols) throw new IllegalArgumentException("Matrix dimensions do not match for subtraction.");
 
         Matrix result = new Matrix(rows, cols);
         for (int row = 0; row < rows; row++) {
@@ -200,6 +213,10 @@ public class Matrix {
 
     // Pass each element through the derivative of the activation function
     public Matrix activationDerivative(ActivationFunction activationFunction) {
+        if (activationFunction == ActivationFunction.SOFTMAX) {
+            return softmaxDerivative();
+        }
+
         Matrix result = new Matrix(this.rows, this.cols);
         for (int row = 0; row < rows; row++) {
             for (int col = 0; col < cols; col++) {
@@ -211,9 +228,36 @@ public class Matrix {
 
     // Transform elements into a probability distribution
     public Matrix softmax() {
-        Matrix expMatrix = exp(); // Apply e^x to each element
-        double sum = expMatrix.sum(); // Sum of all e^x values
+        // Find max value for numerical stability
+        double max = Arrays.stream(this.data)
+                .flatMapToDouble(Arrays::stream)
+                .max()
+                .orElse(0.0);
+
+        // Apply exp(x - max) for numerical stability
+        Matrix expMatrix = this.add(-max).exp();
+        double sum = expMatrix.sum(); // Sum of all e^(x - max)
+
         return expMatrix.scale(1.0 / sum);
+    }
+
+    // Pass through softmax derivative
+    public Matrix softmaxDerivative() {
+        int n = this.rows;
+        Matrix jacobian = new Matrix(n, n);
+
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                double si = this.data[i][0];
+                double sj = this.data[j][0];
+                if (i == j) {
+                    jacobian.data[i][j] = si * (1 - si);
+                } else {
+                    jacobian.data[i][j] = -si * sj;
+                }
+            }
+        }
+        return jacobian;
     }
 
     // Flatten into a column vector
