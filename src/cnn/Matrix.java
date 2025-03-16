@@ -23,18 +23,21 @@ import java.util.Arrays;
  * Matrix B = Matrix.randomized(3, 3); // Creates a 3x3 matrix with values between -1 and 1
  * Matrix C = A.add(B); // Adds matrices A and B
  * Matrix D = A.subtract(B); // Subtracts matrices A and B
- * Matrix E = A.transpose(); // Interchanges rows and columns
- * Matrix F = A.scale(2.5); // Multiplies matrix A by scalar 2.5
- * Matrix G = A.multiply(B); // Performs matrix multiplication
- * Matrix H = A.elementWiseMultiply(B); // Multiplies elements in A and B
- * Matrix I = A.activate(ActivationFunction.RELU); // Applies ReLU activation to each element in A
- * Matrix J = A.activationDerivative(ActivationFunction.RELU); // Applies ReLU derivative to each element in A
- * Matrix K = A.flatten(); // Converts matrix to a column matrix
- * Matrix L = A.sortFlattenedByIndex(); // Sorts matrix indices in descending order
+ * double E = A.sum(); // Sums all elements in A
+ * Matrix F = A.transpose(); // Interchanges rows and columns
+ * Matrix G = A.scale(2.5); // Multiplies matrix A by scalar 2.5
+ * Matrix H = A.multiply(B); // Performs matrix multiplication
+ * Matrix I = A.elementWiseMultiply(B); // Multiplies elements in A and B
+ * Matrix J = A.exp(); // Apply e^x to each element
+ * Matrix K = A.activate(ActivationFunction.RELU); // Applies ReLU activation to each element in A
+ * Matrix L = A.activationDerivative(ActivationFunction.RELU); // Applies ReLU derivative to each element in A
+ * Matrix M = A.softmax(); // Transforms matrix into probability distribution
+ * Matrix N = A.flatten(); // Converts matrix to a column matrix
+ * int[] O = A.sortFlattenedByIndex(); // Sorts matrix indices in descending order
  * }</pre>
  *
  * @author Braeden West
- * @version 1.2 (2025-03-13)
+ * @version 1.3 (2025-03-15)
  * @since 2025-03-11
  */
 
@@ -106,6 +109,17 @@ public class Matrix {
         return result;
     }
 
+    // Matrix sum
+    public double sum() {
+        double sum = 0;
+        for (int row = 0; row < rows; row++) {
+            for (int col = 0; col < cols; col++) {
+                sum += data[row][col];
+            }
+        }
+        return sum;
+    }
+
     // Matrix transposition
     public Matrix transpose() {
         Matrix result = new Matrix(cols, rows); // Flips dimensions
@@ -162,6 +176,17 @@ public class Matrix {
         return result;
     }
 
+    // Apply e^x to each element
+    public Matrix exp() {
+        Matrix result = new Matrix(rows, cols);
+        for (int row = 0; row < this.rows; row++) {
+            for (int col = 0; col < this.cols; col++) {
+                result.data[row][col] = Math.exp(data[row][col]);
+            }
+        }
+        return result;
+    }
+
     // Pass each element through the activation function
     public Matrix activate(ActivationFunction activationFunction) {
         Matrix result = new Matrix(this.rows, this.cols);
@@ -182,6 +207,13 @@ public class Matrix {
             }
         }
         return result;
+    }
+
+    // Transform elements into a probability distribution
+    public Matrix softmax() {
+        Matrix expMatrix = exp(); // Apply e^x to each element
+        double sum = expMatrix.sum(); // Sum of all e^x values
+        return expMatrix.scale(1.0 / sum);
     }
 
     // Flatten into a column vector
