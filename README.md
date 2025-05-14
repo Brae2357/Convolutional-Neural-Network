@@ -5,7 +5,6 @@ _A CNN built from scratch in Java to recognize handwritten digits._
 - [Overview](#overview)
 - [Features](#features)
 - [Installation](#installation)
-- [Usage](#usage)
 - [Future Improvements](#future-improvements)
 - [License](#license)
 
@@ -17,7 +16,13 @@ This project is a Convolutional Neural Network (CNN) implemented from scratch in
 ---
 
 ## Features
-TODO
+- Developed a fully connected nueral network from scratch in Java, supporting multiple hideen layers and customizable architecture.
+- Added a drawing pad to test network predictions.
+- Implemented a custom Matrix class to handle all linear algebra operations, including dot products, element-wise functions, and matrix transformations.
+- Built forward propogation and backpropogation logic to train networks using gradient descent and cost functions.
+- Enabled training of networks on labeled data, such as MNIST and Google’s Quick Draw dataset, with adjustable learning rate, epochs, and batch sizes.
+- Added functionality to save and load trained models, allowing quick reuse.
+- Designed the system to be modular and extendable for future additions.
 
 ---
 
@@ -31,13 +36,10 @@ TODO
 
 ---
 
-## Usage
-TODO
-
----
-
 ## Future Improvements
-- TODO
+- Working towards optimized convolutional operations.
+- Expanding network to handle RGB images.
+- Enable GPU support for faster training.
 
 ---
 
